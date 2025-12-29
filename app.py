@@ -4,17 +4,29 @@ import pandas as pd
 # --- 1. 設定頁面 ---
 st.set_page_config(page_title="千山淨水維修", page_icon="🛠️", layout="centered")
 
-# CSS 美化：讓摺疊選單的字大一點，比較好點
+# CSS 美化：
+# 1. 讓摺疊選單標題變大
+# 2. 讓外部連結看起來像按鈕一樣明顯
 st.markdown("""
     <style>
     .streamlit-expanderHeader {
         font-size: 18px;
         font-weight: bold;
     }
+    a.external-link {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #FF0000;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛠️ 千山淨水維修影片庫")
+st.title("🛠️ 千山淨水維修")
 
 # --- 2. 讀取資料 ---
 @st.cache_data
@@ -30,34 +42,42 @@ df = load_data()
 
 # --- 3. 初始化 Session State (紀錄目前看到第幾筆) ---
 if 'limit' not in st.session_state:
-    st.session_state.limit = 20  # 因為現在是純文字，比較不吃資源，一次顯示 20 筆也沒問題
+    st.session_state.limit = 20
 
-# --- 4. 搜尋功能 (置頂) ---
+# --- 4. 搜尋功能 ---
 search_query = st.text_input("🔍 搜尋影片...", placeholder="輸入關鍵字 (例如：更換、WST...)")
 
-# --- 5. 顯示邏輯 (摺疊選單版) ---
+# --- 5. 顯示邏輯 ---
 if not df.empty:
     
-    # 準備要顯示的資料
+    # 準備顯示資料
     if search_query:
-        # 有搜尋時：顯示所有符合結果
+        # 有搜尋：顯示全部符合結果
         display_df = df[df['Title'].str.contains(search_query, case=False)]
         st.success(f"找到 {len(display_df)} 個相關影片")
     else:
-        # 沒搜尋時：只顯示前 N 筆 (避免網頁卡住)
-        st.caption("點擊標題即可展開觀看影片 👇")
+        # 沒搜尋：只顯示前 N 筆
+        st.caption("點擊標題展開，若無法播放請點擊下方連結 👇")
         display_df = df.iloc[:st.session_state.limit]
 
-    # --- 核心修改：改用 Expander (下拉摺疊) ---
+    # --- 核心顯示區塊 ---
     for index, row in display_df.iterrows():
-        # 這裡就是你要的「點進下拉式選單」效果
-        with st.expander(f"📄 {row['Title']}"): 
+        with st.expander(f"📄 {row['Title']}"):
+            
+            # 1. 嘗試顯示播放器
             try:
                 st.video(row['URL'])
             except:
-                st.write(f"🔗 影片連結: {row['URL']}")
+                st.warning("⚠️ 預覽載入失敗")
 
-    # --- 載入更多按鈕 (只有在沒搜尋時顯示) ---
+            # 2. 【新增】不管能不能播，都附上超連結
+            # 這裡做了一個點擊會跳轉的文字連結
+            st.markdown(f"**👉 [點擊前往 YouTube 觀看]({row['URL']})**")
+            
+            # 如果想要顯示原始連結網址，可以把下面這行打開
+            # st.caption(f"網址: {row['URL']}")
+
+    # --- 載入更多按鈕 ---
     if not search_query and st.session_state.limit < len(df):
         st.markdown("---")
         if st.button("👇 載入更多影片 (+20)"):
