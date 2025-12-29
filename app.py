@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # --- 1. 設定頁面 (手機版面優化) ---
-st.set_page_config(page_title="維修影片庫", page_icon="📱", layout="centered")
+st.set_page_config(page_title="千山淨水維修", page_icon="📱", layout="centered")
 
 # CSS 美化：把按鈕變大，好按一點
 st.markdown("""
@@ -17,7 +17,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("📱 內部維修影片庫")
+st.title("📱 千山淨水維修")
 
 # --- 2. 讀取資料 ---
 @st.cache_data
